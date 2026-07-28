@@ -138,7 +138,10 @@ async function apiError(response: Response) {
 }
 
 async function getJson<T>(url: string): Promise<T> {
-  const response = await fetch(url);
+  const response = await fetch(url, {
+    cache: "no-store",
+    signal: AbortSignal.timeout(10_000),
+  });
   if (!response.ok) throw new Error(await apiError(response));
   return response.json();
 }
@@ -431,6 +434,11 @@ export default function App() {
         method: "POST",
         body: form,
       });
+      if (response.status === 409) {
+        await loadNovels();
+        setMessage("这本书已经在书架中，已为你刷新书架");
+        return;
+      }
       if (!response.ok) throw new Error(await apiError(response));
       const uploaded: Novel = await response.json();
       setMessage(`《${uploaded.title}》已解析，共 ${uploaded.chapter_count} 章`);
@@ -775,7 +783,12 @@ export default function App() {
       <section className="shelf">
         <div className="section-heading">
           <div><p className="eyebrow">YOUR LIBRARY</p><h2>我的书架</h2></div>
-          <span>{novels.length} 本小说</span>
+          <span>
+            {novels.length} 本小说
+            <button className="refresh-shelf" onClick={() => void loadNovels()}>
+              刷新
+            </button>
+          </span>
         </div>
         {loading ? (
           <div className="empty">正在整理书架…</div>

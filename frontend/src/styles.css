@@ -89,6 +89,11 @@ button:disabled { cursor: wait; opacity: .65; }
 }
 .empty span { font-family: Georgia, "SimSun", serif; font-size: 22px; }
 .empty p { margin: 8px 0 0; color: #8a8379; font-size: 13px; }
+.refresh-shelf {
+  width: auto; margin: 0 0 0 10px; padding: 5px 8px;
+  border: 1px solid #d4cec4; background: transparent;
+  color: #716a61; font-size: 10px;
+}
 
 .reader-shell {
   --reader-bg: #f5f2eb;
