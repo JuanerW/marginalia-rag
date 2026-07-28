@@ -85,6 +85,10 @@ chunk.chapter_number == current_chapter
 `chunk_embeddings` 表中，并记录模型名和维度，因此同一 Chunk 可以扩展到多个
 Embedding 模型。
 
+每次索引都会创建独立的 `index_profiles` 记录，不覆盖旧 Chunk。前端阅读器的
+“索引”面板可以选择段落/固定窗口预设、建立新方案并切换当前方案。检索默认使用
+当前启用方案，也可以通过 `profile_id` 显式查询历史方案。
+
 先建立索引：
 
 ```powershell

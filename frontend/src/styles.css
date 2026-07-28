@@ -177,6 +177,36 @@ button:disabled { cursor: wait; opacity: .65; }
   background: transparent; color: var(--reader-text); font-size: 10px;
 }
 .theme-options button.selected { border-color: #a34931; color: #a34931; }
+.panel-title {
+  margin: 0 0 18px; font: 21px Georgia, "SimSun", serif;
+}
+.index-panel select {
+  width: 100%; margin-top: 9px; padding: 9px;
+  border: 1px solid var(--reader-line); background: var(--reader-bg);
+  color: var(--reader-text);
+}
+.index-create {
+  width: 100%; margin: 0 0 15px; padding: 10px;
+  background: #a34931; color: white; font-size: 11px;
+}
+.index-create:disabled { opacity: .55; }
+.profile-list {
+  display: grid; gap: 6px; max-height: 260px; overflow-y: auto;
+  padding-top: 14px; border-top: 1px solid var(--reader-line);
+}
+.profile-list > p, .index-message {
+  margin: 4px 0; color: var(--reader-muted); font-size: 10px; line-height: 1.5;
+}
+.profile-list button {
+  display: grid; gap: 4px; width: 100%; margin: 0; padding: 10px;
+  border: 1px solid var(--reader-line); background: transparent;
+  color: var(--reader-text); text-align: left;
+}
+.profile-list button.active { border-color: #a34931; }
+.profile-list button:disabled { opacity: 1; }
+.profile-list button strong { font-size: 11px; }
+.profile-list button span { color: var(--reader-muted); font-size: 9px; }
+.index-message { margin-top: 12px; color: #a34931; }
 
 @media (max-width: 850px) {
   .hero { grid-template-columns: 1fr; gap: 40px; padding: 60px 0 72px; }

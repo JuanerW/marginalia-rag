@@ -43,6 +43,53 @@ type ReaderSettings = {
   lineHeight: number;
 };
 
+type IndexProfile = {
+  id: string;
+  novel_id: string;
+  strategy: "paragraph" | "fixed";
+  target_size: number;
+  max_size: number;
+  overlap: number;
+  embedding_model: string;
+  dimensions: number | null;
+  chapter_count: number;
+  chunk_count: number;
+  status: string;
+  is_active: boolean;
+  created_at: string;
+};
+
+const indexPresets = {
+  "paragraph-small": {
+    label: "段落 · 小",
+    strategy: "paragraph",
+    target_size: 350,
+    max_size: 500,
+    overlap: 50,
+  },
+  "paragraph-medium": {
+    label: "段落 · 中",
+    strategy: "paragraph",
+    target_size: 700,
+    max_size: 900,
+    overlap: 100,
+  },
+  "paragraph-large": {
+    label: "段落 · 大",
+    strategy: "paragraph",
+    target_size: 1100,
+    max_size: 1400,
+    overlap: 150,
+  },
+  "fixed-medium": {
+    label: "固定 · 中",
+    strategy: "fixed",
+    target_size: 800,
+    max_size: 800,
+    overlap: 100,
+  },
+} as const;
+
 const defaultSettings: ReaderSettings = {
   theme: "paper",
   fontSize: 19,
@@ -88,6 +135,11 @@ export default function App() {
   const [readerLoading, setReaderLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [indexOpen, setIndexOpen] = useState(false);
+  const [indexProfiles, setIndexProfiles] = useState<IndexProfile[]>([]);
+  const [indexPreset, setIndexPreset] =
+    useState<keyof typeof indexPresets>("paragraph-medium");
+  const [indexing, setIndexing] = useState(false);
   const [settings, setSettings] = useState<ReaderSettings>(() => {
     try {
       const saved = window.localStorage.getItem("reader-settings");
@@ -163,12 +215,14 @@ export default function App() {
     setReaderLoading(true);
     setMessage("");
     try {
-      const [loadedChapters, loadedProgress] = await Promise.all([
+      const [loadedChapters, loadedProgress, loadedProfiles] = await Promise.all([
         getJson<ChapterSummary[]>(`${API_URL}/novels/${novel.id}/chapters`),
         getJson<Progress>(`${API_URL}/novels/${novel.id}/progress`),
+        getJson<IndexProfile[]>(`${API_URL}/rag/index-profiles/${novel.id}`),
       ]);
       setChapters(loadedChapters);
       setProgress(loadedProgress);
+      setIndexProfiles(loadedProfiles);
       const available = loadedChapters.some(
         (item) => item.number === loadedProgress.display_chapter_number,
       );
@@ -187,6 +241,56 @@ export default function App() {
       setActiveNovel(null);
     } finally {
       setReaderLoading(false);
+    }
+  }
+
+  async function createIndexProfile() {
+    if (!activeNovel) return;
+    setIndexing(true);
+    setMessage("");
+    const preset = indexPresets[indexPreset];
+    try {
+      const response = await fetch(`${API_URL}/rag/index`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          novel_id: activeNovel.id,
+          model: "bge-m3:latest",
+          strategy: preset.strategy,
+          target_size: preset.target_size,
+          max_size: preset.max_size,
+          overlap: preset.overlap,
+        }),
+      });
+      if (!response.ok) throw new Error(await apiError(response));
+      setIndexProfiles(
+        await getJson<IndexProfile[]>(
+          `${API_URL}/rag/index-profiles/${activeNovel.id}`,
+        ),
+      );
+      setMessage(`已建立“${preset.label}”索引并设为当前方案`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "建立索引失败");
+    } finally {
+      setIndexing(false);
+    }
+  }
+
+  async function activateIndexProfile(profileId: string) {
+    if (!activeNovel) return;
+    try {
+      const response = await fetch(
+        `${API_URL}/rag/index-profiles/${profileId}/activate`,
+        { method: "POST" },
+      );
+      if (!response.ok) throw new Error(await apiError(response));
+      setIndexProfiles(
+        await getJson<IndexProfile[]>(
+          `${API_URL}/rag/index-profiles/${activeNovel.id}`,
+        ),
+      );
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "切换索引失败");
     }
   }
 
@@ -275,7 +379,22 @@ export default function App() {
             <span>{activeNovel.source_format.toUpperCase()} · {chapter?.title ?? "正在载入…"}</span>
           </div>
           <div className="reader-actions">
-            <button className="text-button" onClick={() => setSettingsOpen(!settingsOpen)}>
+            <button
+              className="text-button"
+              onClick={() => {
+                setIndexOpen(!indexOpen);
+                setSettingsOpen(false);
+              }}
+            >
+              ◫ 索引
+            </button>
+            <button
+              className="text-button"
+              onClick={() => {
+                setSettingsOpen(!settingsOpen);
+                setIndexOpen(false);
+              }}
+            >
               Aa 设置
             </button>
             <button className="text-button" onClick={() => setActiveNovel(null)}>
@@ -303,6 +422,57 @@ export default function App() {
           </aside>
 
           <section className="reading-stage">
+            {indexOpen && (
+              <div className="settings-panel index-panel">
+                <p className="panel-title">索引方案</p>
+                <label>
+                  新方案
+                  <select
+                    value={indexPreset}
+                    onChange={(event) =>
+                      setIndexPreset(
+                        event.target.value as keyof typeof indexPresets,
+                      )
+                    }
+                  >
+                    {Object.entries(indexPresets).map(([key, preset]) => (
+                      <option key={key} value={key}>{preset.label}</option>
+                    ))}
+                  </select>
+                </label>
+                <button
+                  className="index-create"
+                  disabled={indexing}
+                  onClick={() => void createIndexProfile()}
+                >
+                  {indexing ? "正在切块并生成向量…" : "建立并启用"}
+                </button>
+                <div className="profile-list">
+                  {indexProfiles.length === 0 ? (
+                    <p>这本书还没有索引。</p>
+                  ) : (
+                    indexProfiles.map((profile) => (
+                      <button
+                        key={profile.id}
+                        className={profile.is_active ? "active" : ""}
+                        disabled={profile.is_active || profile.status !== "ready"}
+                        onClick={() => void activateIndexProfile(profile.id)}
+                      >
+                        <strong>
+                          {profile.strategy === "paragraph" ? "段落" : "固定"}
+                          {" · "}{profile.target_size} 字
+                        </strong>
+                        <span>
+                          {profile.chunk_count} 块 · {profile.embedding_model}
+                          {profile.is_active ? " · 当前" : ""}
+                        </span>
+                      </button>
+                    ))
+                  )}
+                </div>
+                {message && <p className="index-message">{message}</p>}
+              </div>
+            )}
             {settingsOpen && (
               <div className="settings-panel">
                 <label>

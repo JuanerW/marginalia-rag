@@ -79,3 +79,23 @@ def chunk_text(
             overlap_index -= 1
         start_index = max(start_index + 1, overlap_index)
     return chunks
+
+
+def fixed_chunk_text(
+    content: str,
+    size: int = 800,
+    overlap: int = 100,
+) -> list[TextChunk]:
+    if not 0 <= overlap < size:
+        raise ValueError("固定窗口参数必须满足 0 <= overlap < size")
+    limit = _body_end(content)
+    chunks: list[TextChunk] = []
+    start = 0
+    step = size - overlap
+    while start < limit:
+        end = min(start + size, limit)
+        chunks.append(TextChunk(start, end, content[start:end]))
+        if end == limit:
+            break
+        start += step
+    return chunks
