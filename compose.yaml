@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-reader}
+      POSTGRES_USER: ${POSTGRES_USER:-reader}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-reader}
+    ports:
+      - "5433:5432"
+    volumes:
+      - reader_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-reader} -d ${POSTGRES_DB:-reader}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  reader_postgres_data:

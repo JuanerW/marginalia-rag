@@ -1,0 +1,374 @@
+[
+  {
+    "created_at": "2026-07-28T20:25:52.678678+00:00",
+    "epub": "C:\\Users\\JuanerW\\Downloads\\SanGuoYanYi（JiaoZhuBen）.epub",
+    "model": "bge-m3:latest",
+    "embedding_dimension": 1024,
+    "chunk_profile": {
+      "strategy": "paragraph",
+      "target_size": 350,
+      "max_size": 500,
+      "overlap": 50
+    },
+    "chapter_count": 3,
+    "chunk_count": 67,
+    "chunk_length": {
+      "min": 39,
+      "mean": 375.32835820895525,
+      "max": 498
+    },
+    "question_count": 30,
+    "metrics": {
+      "bm25": {
+        "hit_at_1": 0.7333333333333333,
+        "hit_at_3": 0.9,
+        "hit_at_5": 0.9,
+        "hit_at_10": 0.9333333333333333,
+        "recall_at_5": 0.7363756613756614,
+        "recall_at_10": 0.8959259259259259,
+        "precision_at_5": 0.58,
+        "precision_at_10": 0.39666666666666667,
+        "mrr": 0.8092592592592592,
+        "ndcg_at_10": 0.8499725110593411,
+        "boundary_violation_rate": 0.0
+      },
+      "dense": {
+        "hit_at_1": 0.6666666666666666,
+        "hit_at_3": 0.8,
+        "hit_at_5": 0.9,
+        "hit_at_10": 0.9333333333333333,
+        "recall_at_5": 0.6252645502645503,
+        "recall_at_10": 0.8014550264550265,
+        "precision_at_5": 0.48666666666666664,
+        "precision_at_10": 0.35333333333333333,
+        "mrr": 0.7492592592592593,
+        "ndcg_at_10": 0.7464416122658826,
+        "boundary_violation_rate": 0.0
+      },
+      "hybrid": {
+        "hit_at_1": 0.7333333333333333,
+        "hit_at_3": 0.9,
+        "hit_at_5": 0.9333333333333333,
+        "hit_at_10": 0.9333333333333333,
+        "recall_at_5": 0.7036375661375661,
+        "recall_at_10": 0.8696296296296296,
+        "precision_at_5": 0.5466666666666666,
+        "precision_at_10": 0.39333333333333337,
+        "mrr": 0.8066666666666666,
+        "ndcg_at_10": 0.8315431226864753,
+        "boundary_violation_rate": 0.0
+      }
+    },
+    "profile_name": "paragraph-small"
+  },
+  {
+    "created_at": "2026-07-28T20:25:54.587308+00:00",
+    "epub": "C:\\Users\\JuanerW\\Downloads\\SanGuoYanYi（JiaoZhuBen）.epub",
+    "model": "bge-m3:latest",
+    "embedding_dimension": 1024,
+    "chunk_profile": {
+      "strategy": "paragraph",
+      "target_size": 700,
+      "max_size": 900,
+      "overlap": 100
+    },
+    "chapter_count": 3,
+    "chunk_count": 32,
+    "chunk_length": {
+      "min": 430,
+      "mean": 721.03125,
+      "max": 888
+    },
+    "question_count": 30,
+    "metrics": {
+      "bm25": {
+        "hit_at_1": 0.8,
+        "hit_at_3": 0.9666666666666667,
+        "hit_at_5": 0.9666666666666667,
+        "hit_at_10": 0.9666666666666667,
+        "recall_at_5": 0.888888888888889,
+        "recall_at_10": 0.9666666666666667,
+        "precision_at_5": 0.5133333333333333,
+        "precision_at_10": 0.312962962962963,
+        "mrr": 0.8777777777777778,
+        "ndcg_at_10": 0.91714317461467,
+        "boundary_violation_rate": 0.0
+      },
+      "dense": {
+        "hit_at_1": 0.7,
+        "hit_at_3": 0.8,
+        "hit_at_5": 0.8666666666666667,
+        "hit_at_10": 0.9666666666666667,
+        "recall_at_5": 0.6980555555555555,
+        "recall_at_10": 0.8855555555555555,
+        "precision_at_5": 0.43333333333333335,
+        "precision_at_10": 0.2796296296296296,
+        "mrr": 0.774537037037037,
+        "ndcg_at_10": 0.7901152771720923,
+        "boundary_violation_rate": 0.0
+      },
+      "hybrid": {
+        "hit_at_1": 0.8,
+        "hit_at_3": 0.9333333333333333,
+        "hit_at_5": 0.9666666666666667,
+        "hit_at_10": 0.9666666666666667,
+        "recall_at_5": 0.8486111111111111,
+        "recall_at_10": 0.92,
+        "precision_at_5": 0.49333333333333335,
+        "precision_at_10": 0.292962962962963,
+        "mrr": 0.8677777777777779,
+        "ndcg_at_10": 0.8722086343872634,
+        "boundary_violation_rate": 0.0
+      }
+    },
+    "profile_name": "paragraph-medium"
+  },
+  {
+    "created_at": "2026-07-28T20:25:57.135240+00:00",
+    "epub": "C:\\Users\\JuanerW\\Downloads\\SanGuoYanYi（JiaoZhuBen）.epub",
+    "model": "bge-m3:latest",
+    "embedding_dimension": 1024,
+    "chunk_profile": {
+      "strategy": "paragraph",
+      "target_size": 1100,
+      "max_size": 1400,
+      "overlap": 150
+    },
+    "chapter_count": 3,
+    "chunk_count": 19,
+    "chunk_length": {
+      "min": 316,
+      "mean": 1133.8947368421052,
+      "max": 1386
+    },
+    "question_count": 30,
+    "metrics": {
+      "bm25": {
+        "hit_at_1": 0.8,
+        "hit_at_3": 1.0,
+        "hit_at_5": 1.0,
+        "hit_at_10": 1.0,
+        "recall_at_5": 0.9833333333333333,
+        "recall_at_10": 1.0,
+        "precision_at_5": 0.46,
+        "precision_at_10": 0.29333333333333333,
+        "mrr": 0.9,
+        "ndcg_at_10": 0.916484266026653,
+        "boundary_violation_rate": 0.0
+      },
+      "dense": {
+        "hit_at_1": 0.7,
+        "hit_at_3": 0.8666666666666667,
+        "hit_at_5": 1.0,
+        "hit_at_10": 1.0,
+        "recall_at_5": 0.8811111111111111,
+        "recall_at_10": 0.9805555555555556,
+        "precision_at_5": 0.4066666666666667,
+        "precision_at_10": 0.2866666666666667,
+        "mrr": 0.8061111111111111,
+        "ndcg_at_10": 0.8276044595722195,
+        "boundary_violation_rate": 0.0
+      },
+      "hybrid": {
+        "hit_at_1": 0.8333333333333334,
+        "hit_at_3": 1.0,
+        "hit_at_5": 1.0,
+        "hit_at_10": 1.0,
+        "recall_at_5": 0.9666666666666667,
+        "recall_at_10": 1.0,
+        "precision_at_5": 0.4533333333333333,
+        "precision_at_10": 0.29333333333333333,
+        "mrr": 0.9111111111111111,
+        "ndcg_at_10": 0.9174623844020053,
+        "boundary_violation_rate": 0.0
+      }
+    },
+    "profile_name": "paragraph-large"
+  },
+  {
+    "created_at": "2026-07-28T20:25:58.770311+00:00",
+    "epub": "C:\\Users\\JuanerW\\Downloads\\SanGuoYanYi（JiaoZhuBen）.epub",
+    "model": "bge-m3:latest",
+    "embedding_dimension": 1024,
+    "chunk_profile": {
+      "strategy": "fixed",
+      "target_size": 400,
+      "max_size": 400,
+      "overlap": 50
+    },
+    "chapter_count": 3,
+    "chunk_count": 49,
+    "chunk_length": {
+      "min": 105,
+      "mean": 387.83673469387753,
+      "max": 400
+    },
+    "question_count": 30,
+    "metrics": {
+      "bm25": {
+        "hit_at_1": 0.7333333333333333,
+        "hit_at_3": 0.8666666666666667,
+        "hit_at_5": 0.8666666666666667,
+        "hit_at_10": 0.8666666666666667,
+        "recall_at_5": 0.7441666666666666,
+        "recall_at_10": 0.86,
+        "precision_at_5": 0.48666666666666664,
+        "precision_at_10": 0.31666666666666665,
+        "mrr": 0.788888888888889,
+        "ndcg_at_10": 0.8743887003718506,
+        "boundary_violation_rate": 0.0
+      },
+      "dense": {
+        "hit_at_1": 0.6333333333333333,
+        "hit_at_3": 0.8333333333333334,
+        "hit_at_5": 0.8333333333333334,
+        "hit_at_10": 0.8666666666666667,
+        "recall_at_5": 0.6389285714285715,
+        "recall_at_10": 0.8092063492063492,
+        "precision_at_5": 0.42,
+        "precision_at_10": 0.29,
+        "mrr": 0.7097222222222223,
+        "ndcg_at_10": 0.7703783703586807,
+        "boundary_violation_rate": 0.0
+      },
+      "hybrid": {
+        "hit_at_1": 0.7333333333333333,
+        "hit_at_3": 0.8333333333333334,
+        "hit_at_5": 0.8666666666666667,
+        "hit_at_10": 0.8666666666666667,
+        "recall_at_5": 0.7559126984126985,
+        "recall_at_10": 0.8457142857142856,
+        "precision_at_5": 0.5066666666666666,
+        "precision_at_10": 0.30666666666666664,
+        "mrr": 0.7805555555555556,
+        "ndcg_at_10": 0.8613227741438385,
+        "boundary_violation_rate": 0.0
+      }
+    },
+    "profile_name": "fixed-small"
+  },
+  {
+    "created_at": "2026-07-28T20:26:00.155416+00:00",
+    "epub": "C:\\Users\\JuanerW\\Downloads\\SanGuoYanYi（JiaoZhuBen）.epub",
+    "model": "bge-m3:latest",
+    "embedding_dimension": 1024,
+    "chunk_profile": {
+      "strategy": "fixed",
+      "target_size": 800,
+      "max_size": 800,
+      "overlap": 100
+    },
+    "chapter_count": 3,
+    "chunk_count": 25,
+    "chunk_length": {
+      "min": 260,
+      "mean": 756.16,
+      "max": 800
+    },
+    "question_count": 30,
+    "metrics": {
+      "bm25": {
+        "hit_at_1": 0.7666666666666667,
+        "hit_at_3": 0.9,
+        "hit_at_5": 0.9333333333333333,
+        "hit_at_10": 0.9333333333333333,
+        "recall_at_5": 0.8727777777777778,
+        "recall_at_10": 0.9333333333333333,
+        "precision_at_5": 0.44666666666666666,
+        "precision_at_10": 0.2708333333333333,
+        "mrr": 0.836111111111111,
+        "ndcg_at_10": 0.9066413942481356,
+        "boundary_violation_rate": 0.0
+      },
+      "dense": {
+        "hit_at_1": 0.6666666666666666,
+        "hit_at_3": 0.8,
+        "hit_at_5": 0.9,
+        "hit_at_10": 0.9333333333333333,
+        "recall_at_5": 0.7761111111111112,
+        "recall_at_10": 0.9072222222222222,
+        "precision_at_5": 0.4,
+        "precision_at_10": 0.26083333333333336,
+        "mrr": 0.7503174603174603,
+        "ndcg_at_10": 0.8170584208941277,
+        "boundary_violation_rate": 0.0
+      },
+      "hybrid": {
+        "hit_at_1": 0.7333333333333333,
+        "hit_at_3": 0.9,
+        "hit_at_5": 0.9333333333333333,
+        "hit_at_10": 0.9333333333333333,
+        "recall_at_5": 0.8605555555555555,
+        "recall_at_10": 0.9266666666666666,
+        "precision_at_5": 0.44000000000000006,
+        "precision_at_10": 0.2675,
+        "mrr": 0.8122222222222223,
+        "ndcg_at_10": 0.8827838379655925,
+        "boundary_violation_rate": 0.0
+      }
+    },
+    "profile_name": "fixed-medium"
+  },
+  {
+    "created_at": "2026-07-28T20:26:01.392139+00:00",
+    "epub": "C:\\Users\\JuanerW\\Downloads\\SanGuoYanYi（JiaoZhuBen）.epub",
+    "model": "bge-m3:latest",
+    "embedding_dimension": 1024,
+    "chunk_profile": {
+      "strategy": "fixed",
+      "target_size": 1200,
+      "max_size": 1200,
+      "overlap": 150
+    },
+    "chapter_count": 3,
+    "chunk_count": 16,
+    "chunk_length": {
+      "min": 939,
+      "mean": 1165.875,
+      "max": 1200
+    },
+    "question_count": 30,
+    "metrics": {
+      "bm25": {
+        "hit_at_1": 0.7666666666666667,
+        "hit_at_3": 0.9333333333333333,
+        "hit_at_5": 0.9333333333333333,
+        "hit_at_10": 0.9333333333333333,
+        "recall_at_5": 0.92,
+        "recall_at_10": 0.9333333333333333,
+        "precision_at_5": 0.38,
+        "precision_at_10": 0.25666666666666665,
+        "mrr": 0.85,
+        "ndcg_at_10": 0.9195196114069876,
+        "boundary_violation_rate": 0.0
+      },
+      "dense": {
+        "hit_at_1": 0.6666666666666666,
+        "hit_at_3": 0.7666666666666667,
+        "hit_at_5": 0.9,
+        "hit_at_10": 0.9333333333333333,
+        "recall_at_5": 0.86,
+        "recall_at_10": 0.9266666666666666,
+        "precision_at_5": 0.36000000000000004,
+        "precision_at_10": 0.25333333333333335,
+        "mrr": 0.7464814814814815,
+        "ndcg_at_10": 0.8379316409103033,
+        "boundary_violation_rate": 0.0
+      },
+      "hybrid": {
+        "hit_at_1": 0.7333333333333333,
+        "hit_at_3": 0.9333333333333333,
+        "hit_at_5": 0.9333333333333333,
+        "hit_at_10": 0.9333333333333333,
+        "recall_at_5": 0.9155555555555555,
+        "recall_at_10": 0.9333333333333333,
+        "precision_at_5": 0.38,
+        "precision_at_10": 0.25666666666666665,
+        "mrr": 0.8277777777777777,
+        "ndcg_at_10": 0.905635631091226,
+        "boundary_violation_rate": 0.0
+      }
+    },
+    "profile_name": "fixed-large"
+  }
+]
