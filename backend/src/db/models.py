@@ -73,4 +73,21 @@ class Chunk(Base):
     content: Mapped[str] = mapped_column(Text)
     start_offset: Mapped[int] = mapped_column(Integer)
     end_offset: Mapped[int] = mapped_column(Integer)
-    embedding: Mapped[list[float] | None] = mapped_column(Vector(1536))
+    embeddings: Mapped[list["ChunkEmbedding"]] = relationship(
+        back_populates="chunk", cascade="all, delete-orphan"
+    )
+
+
+class ChunkEmbedding(Base):
+    __tablename__ = "chunk_embeddings"
+    __table_args__ = (UniqueConstraint("chunk_id", "model"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    chunk_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("chunks.id", ondelete="CASCADE")
+    )
+    model: Mapped[str] = mapped_column(String(255))
+    dimensions: Mapped[int] = mapped_column(Integer)
+    embedding: Mapped[list[float]] = mapped_column(Vector())
+
+    chunk: Mapped[Chunk] = relationship(back_populates="embeddings")

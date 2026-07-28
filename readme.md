@@ -79,6 +79,51 @@ chunk.chapter_number == current_chapter
 
 当前已定义 `novels`、`chapters`、`reading_progress` 和 `chunks` 数据表。
 
+## Ollama Embedding 与检索
+
+默认使用本机 Ollama 的 `bge-m3:latest`（1024 维）。向量保存在独立的
+`chunk_embeddings` 表中，并记录模型名和维度，因此同一 Chunk 可以扩展到多个
+Embedding 模型。
+
+先建立索引：
+
+```powershell
+$body = @{
+  novel_id = "替换为小说 UUID"
+  model = "bge-m3:latest"
+  chapter_limit = 3
+  target_size = 700
+  max_size = 900
+  overlap = 100
+} | ConvertTo-Json
+
+Invoke-RestMethod -Method Post `
+  -Uri http://127.0.0.1:8000/api/v1/rag/index `
+  -ContentType "application/json" `
+  -Body $body
+```
+
+再进行向量检索：
+
+```powershell
+$body = @{
+  novel_id = "替换为小说 UUID"
+  query = "这本书的作者是谁？"
+  model = "bge-m3:latest"
+  top_k = 5
+  max_chapter = 3
+  max_offset = 2147483647
+} | ConvertTo-Json
+
+Invoke-RestMethod -Method Post `
+  -Uri http://127.0.0.1:8000/api/v1/rag/search `
+  -ContentType "application/json; charset=utf-8" `
+  -Body ([System.Text.Encoding]::UTF8.GetBytes($body))
+```
+
+生产阅读流程可以省略 `max_chapter` 和 `max_offset`，接口会读取
+`reading_progress`，并在 PostgreSQL 查询层排除尚未读到的 Chunk。
+
 M1 已实现：
 
 - EPUB 2/3 上传和 ZIP 安全检查；
