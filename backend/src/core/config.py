@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     openai_embedding_model: str = "text-embedding-3-small"
     ollama_url: str = "http://127.0.0.1:11434"
     ollama_embedding_model: str = "bge-m3:latest"
+    ollama_chat_model: str = "qwen3:4B"
     cors_origins: list[str] = ["http://localhost:5173"]
 
     model_config = SettingsConfigDict(env_file=(".env", "../.env"), extra="ignore")

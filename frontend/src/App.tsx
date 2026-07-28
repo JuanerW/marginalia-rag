@@ -59,6 +59,29 @@ type IndexProfile = {
   created_at: string;
 };
 
+type ChunkPreview = {
+  number: number;
+  start_offset: number;
+  end_offset: number;
+  length: number;
+  content: string;
+};
+
+type RagCitation = {
+  chunk_id: string;
+  chapter_number: number;
+  start_offset: number;
+  end_offset: number;
+  content: string;
+  score: number;
+};
+
+type RagAnswer = {
+  answer: string;
+  chat_model: string;
+  citations: RagCitation[];
+};
+
 const indexPresets = {
   "paragraph-small": {
     label: "段落 · 小",
@@ -140,6 +163,12 @@ export default function App() {
   const [indexPreset, setIndexPreset] =
     useState<keyof typeof indexPresets>("paragraph-medium");
   const [indexing, setIndexing] = useState(false);
+  const [previewing, setPreviewing] = useState(false);
+  const [previewChunks, setPreviewChunks] = useState<ChunkPreview[]>([]);
+  const [ragOpen, setRagOpen] = useState(false);
+  const [question, setQuestion] = useState("");
+  const [asking, setAsking] = useState(false);
+  const [ragAnswer, setRagAnswer] = useState<RagAnswer | null>(null);
   const [settings, setSettings] = useState<ReaderSettings>(() => {
     try {
       const saved = window.localStorage.getItem("reader-settings");
@@ -294,6 +323,59 @@ export default function App() {
     }
   }
 
+  async function previewCurrentChapter() {
+    if (!activeNovel || !chapter) return;
+    setPreviewing(true);
+    const preset = indexPresets[indexPreset];
+    try {
+      const response = await fetch(`${API_URL}/rag/preview`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          novel_id: activeNovel.id,
+          chapter_number: chapter.number,
+          strategy: preset.strategy,
+          target_size: preset.target_size,
+          max_size: preset.max_size,
+          overlap: preset.overlap,
+        }),
+      });
+      if (!response.ok) throw new Error(await apiError(response));
+      const result = await response.json();
+      setPreviewChunks(result.chunks);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "预览失败");
+    } finally {
+      setPreviewing(false);
+    }
+  }
+
+  async function askBook(event: FormEvent) {
+    event.preventDefault();
+    if (!activeNovel || !question.trim()) return;
+    setAsking(true);
+    setRagAnswer(null);
+    try {
+      const response = await fetch(`${API_URL}/rag/ask`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          novel_id: activeNovel.id,
+          question: question.trim(),
+          reader_key: "local",
+          top_k: 5,
+          chat_model: "qwen3:4B",
+        }),
+      });
+      if (!response.ok) throw new Error(await apiError(response));
+      setRagAnswer(await response.json());
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "回答失败");
+    } finally {
+      setAsking(false);
+    }
+  }
+
   function handleReaderScroll() {
     if (!chapter || !readerViewport.current) return;
     const viewport = readerViewport.current;
@@ -310,7 +392,16 @@ export default function App() {
   }
 
   async function goToChapter(number: number, offset = 0) {
-    if (!activeNovel || number === chapter?.number) return;
+    if (!activeNovel) return;
+    if (number === chapter?.number) {
+      const viewport = readerViewport.current;
+      if (viewport && chapter) {
+        const maxScroll = viewport.scrollHeight - viewport.clientHeight;
+        viewport.scrollTop =
+          maxScroll * (offset / Math.max(1, chapter.content.length));
+      }
+      return;
+    }
     await saveProgress(number, offset);
     await loadChapter(activeNovel, number, offset);
   }
@@ -382,8 +473,19 @@ export default function App() {
             <button
               className="text-button"
               onClick={() => {
+                setRagOpen(!ragOpen);
+                setIndexOpen(false);
+                setSettingsOpen(false);
+              }}
+            >
+              ✦ 问书
+            </button>
+            <button
+              className="text-button"
+              onClick={() => {
                 setIndexOpen(!indexOpen);
                 setSettingsOpen(false);
+                setRagOpen(false);
               }}
             >
               ◫ 索引
@@ -393,6 +495,7 @@ export default function App() {
               onClick={() => {
                 setSettingsOpen(!settingsOpen);
                 setIndexOpen(false);
+                setRagOpen(false);
               }}
             >
               Aa 设置
@@ -422,6 +525,48 @@ export default function App() {
           </aside>
 
           <section className="reading-stage">
+            {ragOpen && (
+              <aside className="rag-panel">
+                <p className="panel-title">问这本书</p>
+                <p className="panel-note">
+                  只检索你已经读过的内容，由 Qwen 基于原文回答。
+                </p>
+                <form onSubmit={askBook}>
+                  <textarea
+                    value={question}
+                    onChange={(event) => setQuestion(event.target.value)}
+                    placeholder="例如：汪淼为什么去找杨冬的母亲？"
+                    rows={4}
+                  />
+                  <button type="submit" disabled={asking || !question.trim()}>
+                    {asking ? "正在检索和思考…" : "提问"}
+                  </button>
+                </form>
+                {ragAnswer && (
+                  <div className="rag-result">
+                    <p>{ragAnswer.answer}</p>
+                    <span>{ragAnswer.chat_model} · {ragAnswer.citations.length} 条证据</span>
+                    <div className="citation-list">
+                      {ragAnswer.citations.map((citation, index) => (
+                        <button
+                          key={citation.chunk_id}
+                          onClick={() =>
+                            void goToChapter(
+                              citation.chapter_number,
+                              citation.start_offset,
+                            )
+                          }
+                        >
+                          [{index + 1}] 第 {citation.chapter_number} 章 ·
+                          相似度 {citation.score.toFixed(2)}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {message && <p className="index-message">{message}</p>}
+              </aside>
+            )}
             {indexOpen && (
               <div className="settings-panel index-panel">
                 <p className="panel-title">索引方案</p>
@@ -447,6 +592,26 @@ export default function App() {
                 >
                   {indexing ? "正在切块并生成向量…" : "建立并启用"}
                 </button>
+                <button
+                  className="preview-button"
+                  disabled={previewing || !chapter}
+                  onClick={() => void previewCurrentChapter()}
+                >
+                  {previewing ? "正在预览…" : "预览当前章"}
+                </button>
+                {previewChunks.length > 0 && (
+                  <div className="chunk-preview-list">
+                    {previewChunks.map((item) => (
+                      <details key={`${item.start_offset}-${item.end_offset}`}>
+                        <summary>
+                          Chunk {item.number} · {item.start_offset}–
+                          {item.end_offset} · {item.length} 字
+                        </summary>
+                        <p>{item.content}</p>
+                      </details>
+                    ))}
+                  </div>
+                )}
                 <div className="profile-list">
                   {indexProfiles.length === 0 ? (
                     <p>这本书还没有索引。</p>
