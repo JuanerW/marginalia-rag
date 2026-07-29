@@ -233,6 +233,17 @@ button:disabled { cursor: wait; opacity: .65; }
 .profile-list button:disabled { opacity: 1; }
 .profile-list button strong { font-size: 11px; }
 .profile-list button span { color: var(--reader-muted); font-size: 9px; }
+.profile-list button small {
+  color: var(--reader-muted); font-size: 8px; font-weight: 500;
+}
+.profile-progress {
+  display: block; height: 4px; overflow: hidden;
+  background: color-mix(in srgb, var(--reader-text) 10%, transparent);
+}
+.profile-progress > span {
+  display: block; height: 100%; min-width: 2%; background: #a34931;
+  transition: width .35s ease;
+}
 .index-message { margin-top: 12px; color: #a34931; }
 .rag-panel {
   position: absolute; z-index: 6; top: 14px; right: 20px; width: 380px;

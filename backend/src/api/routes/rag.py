@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 from sqlalchemy import or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,6 +18,7 @@ from src.db.models import (
 )
 from src.db.session import get_db
 from src.services.chunking import chunk_text, fixed_chunk_text
+from src.services.indexing import run_index_profile
 from src.services.ollama import (
     OllamaChatClient,
     OllamaEmbeddingClient,
@@ -43,9 +44,10 @@ class IndexResult(BaseModel):
     novel_id: uuid.UUID
     strategy: str
     model: str
-    dimensions: int
+    dimensions: int | None
     chapter_count: int
     chunk_count: int
+    processed_chunks: int
     status: str
     is_active: bool
 
@@ -61,8 +63,10 @@ class IndexProfileResult(BaseModel):
     dimensions: int | None
     chapter_count: int
     chunk_count: int
+    processed_chunks: int
     status: str
     is_active: bool
+    error_message: str | None
     created_at: datetime
 
 
@@ -333,8 +337,16 @@ async def activate_index_profile(
     return profile
 
 
-@router.post("/index", response_model=IndexResult)
-async def index_novel(payload: IndexRequest, db: DbSession) -> IndexResult:
+@router.post(
+    "/index",
+    response_model=IndexResult,
+    status_code=status.HTTP_202_ACCEPTED,
+)
+async def index_novel(
+    payload: IndexRequest,
+    background_tasks: BackgroundTasks,
+    db: DbSession,
+) -> IndexResult:
     novel = await db.get(Novel, payload.novel_id)
     if novel is None:
         raise HTTPException(status_code=404, detail="小说不存在")
@@ -355,94 +367,37 @@ async def index_novel(payload: IndexRequest, db: DbSession) -> IndexResult:
     if not chapters:
         raise HTTPException(status_code=422, detail="小说没有可索引章节")
 
-    client = _embedding_client(payload.model)
     profile = IndexProfile(
         novel_id=payload.novel_id,
         strategy=payload.strategy,
         target_size=payload.target_size,
         max_size=payload.max_size,
         overlap=payload.overlap,
-        embedding_model=client.model,
+        embedding_model=payload.model or settings.ollama_embedding_model,
         dimensions=None,
         chapter_count=len(chapters),
         chunk_count=0,
-        status="indexing",
+        processed_chunks=0,
+        status="queued",
         is_active=False,
     )
     db.add(profile)
-    await db.flush()
-    chunks: list[Chunk] = []
-    for chapter in chapters:
-        if payload.strategy == "paragraph":
-            chapter_chunks = chunk_text(
-                chapter.content,
-                target_size=payload.target_size,
-                max_size=payload.max_size,
-                overlap=payload.overlap,
-            )
-        else:
-            chapter_chunks = fixed_chunk_text(
-                chapter.content,
-                size=payload.target_size,
-                overlap=payload.overlap,
-            )
-        for item in chapter_chunks:
-            chunks.append(
-                Chunk(
-                    novel_id=payload.novel_id,
-                    chapter_id=chapter.id,
-                    index_profile_id=profile.id,
-                    chapter_number=chapter.number,
-                    content=item.content,
-                    start_offset=item.start_offset,
-                    end_offset=item.end_offset,
-                )
-            )
-    if not chunks:
-        raise HTTPException(status_code=422, detail="没有生成任何 Chunk")
-
-    try:
-        vectors = await client.embed([chunk.content for chunk in chunks])
-    except OllamaError as exc:
-        await db.rollback()
-        raise HTTPException(status_code=502, detail=str(exc)) from exc
-    dimensions = len(vectors[0])
-    if any(len(vector) != dimensions for vector in vectors):
-        await db.rollback()
-        raise HTTPException(status_code=502, detail="Ollama 返回的向量维度不一致")
-
-    db.add_all(chunks)
-    await db.flush()
-    model = client.model
-    db.add_all(
-        [
-            ChunkEmbedding(
-                chunk_id=chunk.id,
-                model=model,
-                dimensions=dimensions,
-                embedding=vector,
-            )
-            for chunk, vector in zip(chunks, vectors, strict=True)
-        ]
-    )
-    await db.execute(
-        update(IndexProfile)
-        .where(IndexProfile.novel_id == payload.novel_id)
-        .values(is_active=False)
-    )
-    profile.dimensions = dimensions
-    profile.chunk_count = len(chunks)
-    profile.status = "ready"
-    profile.is_active = True
     await db.commit()
+    await db.refresh(profile)
+    background_tasks.add_task(
+        run_index_profile,
+        profile.id,
+        payload.chapter_limit,
+    )
     return IndexResult(
         profile_id=profile.id,
         novel_id=payload.novel_id,
         strategy=payload.strategy,
-        model=model,
-        dimensions=dimensions,
+        model=profile.embedding_model,
+        dimensions=profile.dimensions,
         chapter_count=len(chapters),
-        chunk_count=len(chunks),
+        chunk_count=profile.chunk_count,
+        processed_chunks=profile.processed_chunks,
         status=profile.status,
         is_active=profile.is_active,
     )

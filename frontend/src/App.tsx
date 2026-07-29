@@ -54,8 +54,10 @@ type IndexProfile = {
   dimensions: number | null;
   chapter_count: number;
   chunk_count: number;
+  processed_chunks: number;
   status: string;
   is_active: boolean;
+  error_message: string | null;
   created_at: string;
 };
 
@@ -203,6 +205,26 @@ export default function App() {
     window.localStorage.setItem("reader-settings", JSON.stringify(settings));
   }, [settings]);
 
+  const hasRunningProfile = indexProfiles.some((profile) =>
+    ["queued", "chunking", "embedding"].includes(profile.status),
+  );
+
+  useEffect(() => {
+    if (!activeNovel || !hasRunningProfile) return;
+    const timer = window.setInterval(async () => {
+      try {
+        setIndexProfiles(
+          await getJson<IndexProfile[]>(
+            `${API_URL}/rag/index-profiles/${activeNovel.id}`,
+          ),
+        );
+      } catch {
+        // Keep the last progress snapshot; the next poll can recover.
+      }
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [activeNovel, hasRunningProfile]);
+
   async function saveProgress(chapterNumber: number, offset: number) {
     if (!activeNovel) return;
     const response = await fetch(`${API_URL}/novels/${activeNovel.id}/progress`, {
@@ -300,7 +322,7 @@ export default function App() {
           `${API_URL}/rag/index-profiles/${activeNovel.id}`,
         ),
       );
-      setMessage(`已建立“${preset.label}”索引并设为当前方案`);
+      setMessage(`“${preset.label}”已进入后台索引队列`);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "建立索引失败");
     } finally {
@@ -595,10 +617,14 @@ export default function App() {
                 </label>
                 <button
                   className="index-create"
-                  disabled={indexing}
+                  disabled={indexing || hasRunningProfile}
                   onClick={() => void createIndexProfile()}
                 >
-                  {indexing ? "正在切块并生成向量…" : "建立并启用"}
+                  {indexing
+                    ? "正在创建任务…"
+                    : hasRunningProfile
+                      ? "后台索引进行中…"
+                      : "建立并启用"}
                 </button>
                 <button
                   className="preview-button"
@@ -639,6 +665,38 @@ export default function App() {
                           {profile.chunk_count} 块 · {profile.embedding_model}
                           {profile.is_active ? " · 当前" : ""}
                         </span>
+                        {["queued", "chunking", "embedding"].includes(
+                          profile.status,
+                        ) && (
+                          <span className="profile-progress">
+                            <span
+                              style={{
+                                width: `${
+                                  profile.chunk_count > 0
+                                    ? Math.round(
+                                        (profile.processed_chunks /
+                                          profile.chunk_count) *
+                                          100,
+                                      )
+                                    : profile.status === "queued"
+                                      ? 2
+                                      : 8
+                                }%`,
+                              }}
+                            />
+                          </span>
+                        )}
+                        <small>
+                          {profile.status === "queued"
+                            ? "等待开始"
+                            : profile.status === "chunking"
+                              ? "正在切块"
+                              : profile.status === "embedding"
+                                ? `${profile.processed_chunks} / ${profile.chunk_count}`
+                                : profile.status === "failed"
+                                  ? `失败：${profile.error_message ?? "未知错误"}`
+                                  : formatDate(profile.created_at)}
+                        </small>
                       </button>
                     ))
                   )}

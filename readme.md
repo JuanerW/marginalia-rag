@@ -89,6 +89,11 @@ Embedding 模型。
 “索引”面板可以选择段落/固定窗口预设、建立新方案并切换当前方案。检索默认使用
 当前启用方案，也可以通过 `profile_id` 显式查询历史方案。
 
+索引通过 FastAPI 后台任务分批执行。`POST /api/v1/rag/index` 会立即返回状态为
+`queued` 的 Profile；前端每秒读取 `processed_chunks / chunk_count` 并显示进度。
+任务依次进入 `chunking`、`embedding`、`ready`，完成后自动启用；失败时保留
+`failed` Profile 和 `error_message`，原 Active Profile 不受影响。
+
 “预览当前章”调用 `/api/v1/rag/preview`，只计算 Chunk 边界，不写数据库，也不
 调用 Embedding 模型。阅读器的“问书”面板调用 `/api/v1/rag/ask`：先从当前索引
 检索已读范围内的 Top-K 原文，再由 Ollama `qwen3:4B` 生成带 `[1]`、`[2]` 证据
