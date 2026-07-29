@@ -1,8 +1,6 @@
 from dataclasses import dataclass
 
 from langchain_core.language_models.chat_models import BaseChatModel
-from langchain_ollama import ChatOllama
-from langchain_openai import ChatOpenAI
 
 from src.core.config import settings
 
@@ -35,6 +33,8 @@ def current_chat_config(model_override: str | None = None) -> ChatModelConfig:
 
 def create_chat_model(config: ChatModelConfig) -> BaseChatModel:
     if config.provider == "ollama":
+        from langchain_ollama import ChatOllama
+
         if not config.base_url:
             raise ChatModelConfigurationError("Ollama 需要配置 LLM_BASE_URL")
         return ChatOllama(
@@ -44,6 +44,8 @@ def create_chat_model(config: ChatModelConfig) -> BaseChatModel:
             reasoning=False,
         )
     if config.provider == "openai":
+        from langchain_openai import ChatOpenAI
+
         if not config.api_key:
             raise ChatModelConfigurationError("OpenAI 需要配置 LLM_API_KEY")
         return ChatOpenAI(
@@ -54,6 +56,8 @@ def create_chat_model(config: ChatModelConfig) -> BaseChatModel:
             max_retries=2,
         )
     if config.provider == "openai_compatible":
+        from langchain_openai import ChatOpenAI
+
         if not config.base_url or not config.api_key:
             raise ChatModelConfigurationError(
                 "OpenAI-compatible API 需要配置 LLM_BASE_URL 和 LLM_API_KEY"

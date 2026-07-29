@@ -1,6 +1,18 @@
+import os
 from functools import lru_cache
+from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+def discard_invalid_ssl_cert_file() -> None:
+    """Let Python use its default CA store when an inherited override is stale."""
+    cert_file = os.environ.get("SSL_CERT_FILE")
+    if cert_file and not Path(cert_file).is_file():
+        os.environ.pop("SSL_CERT_FILE", None)
+
+
+discard_invalid_ssl_cert_file()
 
 
 class Settings(BaseSettings):

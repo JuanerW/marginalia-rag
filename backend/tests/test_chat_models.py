@@ -1,6 +1,4 @@
 import pytest
-from langchain_ollama import ChatOllama
-from langchain_openai import ChatOpenAI
 
 from src.services.chat_models import (
     ChatModelConfig,
@@ -14,7 +12,7 @@ def test_create_ollama_chat_model() -> None:
         ChatModelConfig("ollama", "qwen3:4B", "http://ollama.test")
     )
 
-    assert isinstance(model, ChatOllama)
+    assert model.__class__.__name__ == "ChatOllama"
     assert model.model == "qwen3:4B"
 
 
@@ -28,7 +26,7 @@ def test_create_openai_compatible_chat_model() -> None:
         )
     )
 
-    assert isinstance(model, ChatOpenAI)
+    assert model.__class__.__name__ == "ChatOpenAI"
     assert model.model_name == "custom-model"
 
 
