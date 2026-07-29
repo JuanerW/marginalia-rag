@@ -17,13 +17,15 @@ from src.db.models import (
     ReadingProgress,
 )
 from src.db.session import get_db
+from src.services.chat_models import (
+    ChatModelConfigurationError,
+    create_chat_model,
+    current_chat_config,
+)
 from src.services.chunking import chunk_text, fixed_chunk_text
 from src.services.indexing import run_index_profile
-from src.services.ollama import (
-    OllamaChatClient,
-    OllamaEmbeddingClient,
-    OllamaError,
-)
+from src.services.ollama import OllamaEmbeddingClient, OllamaError
+from src.services.rag_chain import RagChainError, answer_with_langchain
 
 router = APIRouter()
 DbSession = Annotated[AsyncSession, Depends(get_db)]
@@ -469,26 +471,17 @@ async def ask_question(payload: AskRequest, db: DbSession) -> AskResult:
         )
         for number, hit in enumerate(hits, 1)
     )
-    system = (
-        "你是一个无剧透的小说阅读助手。只能根据提供的已读原文回答。"
-        "不得使用未提供的剧情或你自己的小说知识。"
-        "答案中的事实必须使用 [1]、[2] 形式引用证据编号。"
-        "如果证据不足，明确回答“当前已读内容中没有足够信息”。"
-    )
-    prompt = f"问题：{payload.question}\n\n已读原文：\n{context}"
-    chat_model = payload.chat_model or settings.ollama_chat_model
+    chat_config = current_chat_config(payload.chat_model)
     try:
-        answer = await OllamaChatClient(
-            settings.ollama_url,
-            chat_model,
-        ).answer(system, prompt)
-    except OllamaError as exc:
+        model = create_chat_model(chat_config)
+        answer = await answer_with_langchain(model, payload.question, context)
+    except (ChatModelConfigurationError, RagChainError) as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
     return AskResult(
         novel_id=payload.novel_id,
         profile_id=profile.id,
         question=payload.question,
         answer=answer,
-        chat_model=chat_model,
+        chat_model=chat_config.model,
         citations=hits,
     )

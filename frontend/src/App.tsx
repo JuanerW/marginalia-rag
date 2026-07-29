@@ -389,7 +389,6 @@ export default function App() {
           question: question.trim(),
           reader_key: "local",
           top_k: 5,
-          chat_model: "qwen3:4B",
         }),
       });
       if (!response.ok) throw new Error(await apiError(response));

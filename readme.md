@@ -160,7 +160,24 @@ M2 已实现：
 - 最远已读位置只前进、不因回看倒退；
 - 重新打开小说后恢复上次章节和滚动位置。
 
-RAG 将在后续阶段实现。
+## LangChain 聊天模型
+
+`POST /api/v1/rag/ask` 的生成阶段通过 LangChain 统一调用聊天模型。向量检索和
+无剧透范围过滤仍由 PostgreSQL + pgvector 完成，因此更换聊天模型不需要重新切块或
+生成 Embedding。
+
+默认使用本机 Ollama：
+
+```dotenv
+LLM_PROVIDER=ollama
+LLM_MODEL=qwen3:4B
+LLM_BASE_URL=http://127.0.0.1:11434
+LLM_API_KEY=
+```
+
+切换到 OpenAI 时，设置 `LLM_PROVIDER=openai`、模型名和 API Key；对于实现标准
+OpenAI Chat Completions 接口的其他服务，使用 `LLM_PROVIDER=openai_compatible`
+并同时配置 `LLM_BASE_URL`。API Key 只保存在后端环境变量中，不会发送到前端。
 
 ## 本地启动
 

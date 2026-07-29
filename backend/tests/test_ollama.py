@@ -1,11 +1,7 @@
 import httpx
 import pytest
 
-from src.services.ollama import (
-    OllamaChatClient,
-    OllamaEmbeddingClient,
-    OllamaError,
-)
+from src.services.ollama import OllamaEmbeddingClient, OllamaError
 
 
 @pytest.mark.asyncio
@@ -58,36 +54,3 @@ async def test_ollama_embedding_client_wraps_http_errors(
             "http://ollama.test",
             "missing",
         ).embed(["测试"])
-
-
-@pytest.mark.asyncio
-async def test_ollama_chat_client_returns_answer(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    def handler(request: httpx.Request) -> httpx.Response:
-        payload = __import__("json").loads(request.content)
-        assert payload["think"] is False
-        assert payload["messages"][0]["role"] == "system"
-        return httpx.Response(
-            200,
-            json={
-                "message": {
-                    "content": "<think>内部推理不应展示</think>\n刘慈欣。[1]"
-                }
-            },
-        )
-
-    transport = httpx.MockTransport(handler)
-    original_client = httpx.AsyncClient
-
-    def client_factory(*args: object, **kwargs: object) -> httpx.AsyncClient:
-        kwargs["transport"] = transport
-        return original_client(*args, **kwargs)
-
-    monkeypatch.setattr(httpx, "AsyncClient", client_factory)
-    answer = await OllamaChatClient(
-        "http://ollama.test",
-        "qwen3:4B",
-    ).answer("只按证据回答", "作者是谁？")
-
-    assert answer == "刘慈欣。[1]"
