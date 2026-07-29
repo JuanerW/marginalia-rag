@@ -388,7 +388,7 @@ export default function App() {
           novel_id: activeNovel.id,
           question: question.trim(),
           reader_key: "local",
-          top_k: 5,
+          top_k: 3,
         }),
       });
       if (!response.ok) throw new Error(await apiError(response));
@@ -568,7 +568,7 @@ export default function App() {
                     rows={4}
                   />
                   <button type="submit" disabled={asking || !question.trim()}>
-                    {asking ? "正在检索和思考…" : "提问"}
+                    {asking ? "本地 Qwen 生成中（约 10–30 秒）…" : "提问"}
                   </button>
                 </form>
                 {ragAnswer && (

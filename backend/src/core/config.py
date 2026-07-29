@@ -24,10 +24,14 @@ class Settings(BaseSettings):
     openai_embedding_model: str = "text-embedding-3-small"
     ollama_url: str = "http://127.0.0.1:11434"
     ollama_embedding_model: str = "bge-m3:latest"
+    ollama_embedding_timeout_seconds: float = 45
     llm_provider: str = "ollama"
     llm_model: str = "qwen3:4B"
     llm_base_url: str = "http://127.0.0.1:11434"
     llm_api_key: str = ""
+    llm_timeout_seconds: float = 90
+    ollama_num_ctx: int = 8192
+    ollama_num_predict: int = 4096
     cors_origins: list[str] = [
         "http://localhost:5173",
         "http://127.0.0.1:5173",

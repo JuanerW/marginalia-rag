@@ -41,7 +41,10 @@ def create_chat_model(config: ChatModelConfig) -> BaseChatModel:
             model=config.model,
             base_url=config.base_url,
             temperature=0.2,
-            reasoning=False,
+            reasoning=True,
+            num_ctx=settings.ollama_num_ctx,
+            num_predict=settings.ollama_num_predict,
+            client_kwargs={"timeout": settings.llm_timeout_seconds},
         )
     if config.provider == "openai":
         from langchain_openai import ChatOpenAI

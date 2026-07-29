@@ -14,6 +14,9 @@ def test_create_ollama_chat_model() -> None:
 
     assert model.__class__.__name__ == "ChatOllama"
     assert model.model == "qwen3:4B"
+    assert model.num_ctx == 8192
+    assert model.num_predict == 4096
+    assert model.reasoning is True
 
 
 def test_create_openai_compatible_chat_model() -> None:

@@ -147,6 +147,7 @@ def _embedding_client(model: str | None) -> OllamaEmbeddingClient:
     return OllamaEmbeddingClient(
         settings.ollama_url,
         model or settings.ollama_embedding_model,
+        settings.ollama_embedding_timeout_seconds,
     )
 
 
@@ -474,7 +475,12 @@ async def ask_question(payload: AskRequest, db: DbSession) -> AskResult:
     chat_config = current_chat_config(payload.chat_model)
     try:
         model = create_chat_model(chat_config)
-        answer = await answer_with_langchain(model, payload.question, context)
+        answer = await answer_with_langchain(
+            model,
+            payload.question,
+            context,
+            settings.llm_timeout_seconds,
+        )
     except (ChatModelConfigurationError, RagChainError) as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
     return AskResult(
