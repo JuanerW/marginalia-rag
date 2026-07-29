@@ -28,7 +28,10 @@ class Settings(BaseSettings):
     llm_model: str = "qwen3:4B"
     llm_base_url: str = "http://127.0.0.1:11434"
     llm_api_key: str = ""
-    cors_origins: list[str] = ["http://localhost:5173"]
+    cors_origins: list[str] = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ]
 
     model_config = SettingsConfigDict(env_file=(".env", "../.env"), extra="ignore")
 
