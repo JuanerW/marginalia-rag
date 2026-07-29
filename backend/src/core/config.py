@@ -32,6 +32,12 @@ class Settings(BaseSettings):
     llm_timeout_seconds: float = 90
     ollama_num_ctx: int = 8192
     ollama_num_predict: int = 4096
+    qwen_api_key: str = ""
+    qwen_base_url: str = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+    qwen_chat_model: str = "qwen-plus"
+    deepseek_api_key: str = ""
+    deepseek_base_url: str = "https://api.deepseek.com"
+    deepseek_chat_model: str = "deepseek-v4-flash"
     cors_origins: list[str] = [
         "http://localhost:5173",
         "http://127.0.0.1:5173",

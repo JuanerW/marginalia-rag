@@ -80,8 +80,18 @@ type RagCitation = {
 
 type RagAnswer = {
   answer: string;
+  chat_profile: string;
   chat_model: string;
   citations: RagCitation[];
+};
+
+type ChatModelOption = {
+  id: string;
+  label: string;
+  provider: string;
+  model: string;
+  available: boolean;
+  is_default: boolean;
 };
 
 const indexPresets = {
@@ -174,6 +184,8 @@ export default function App() {
   const [question, setQuestion] = useState("");
   const [asking, setAsking] = useState(false);
   const [ragAnswer, setRagAnswer] = useState<RagAnswer | null>(null);
+  const [chatModels, setChatModels] = useState<ChatModelOption[]>([]);
+  const [chatProfile, setChatProfile] = useState("ollama");
   const [settings, setSettings] = useState<ReaderSettings>(() => {
     try {
       const saved = window.localStorage.getItem("reader-settings");
@@ -200,6 +212,20 @@ export default function App() {
   useEffect(() => {
     void loadNovels();
   }, [loadNovels]);
+
+  useEffect(() => {
+    void getJson<ChatModelOption[]>(`${API_URL}/rag/chat-models`)
+      .then((models) => {
+        setChatModels(models);
+        const selected =
+          models.find((model) => model.is_default && model.available) ??
+          models.find((model) => model.available);
+        if (selected) setChatProfile(selected.id);
+      })
+      .catch((error) => {
+        setMessage(error instanceof Error ? error.message : "无法加载聊天模型");
+      });
+  }, []);
 
   useEffect(() => {
     window.localStorage.setItem("reader-settings", JSON.stringify(settings));
@@ -389,6 +415,7 @@ export default function App() {
           question: question.trim(),
           reader_key: "local",
           top_k: 3,
+          chat_profile: chatProfile,
         }),
       });
       if (!response.ok) throw new Error(await apiError(response));
@@ -558,9 +585,28 @@ export default function App() {
               <aside className="rag-panel">
                 <p className="panel-title">问这本书</p>
                 <p className="panel-note">
-                  只检索你已经读过的内容，由 Qwen 基于原文回答。
+                  只检索你已经读过的内容，由所选模型基于原文回答。
                 </p>
                 <form onSubmit={askBook}>
+                  <label className="rag-model-picker">
+                    回答模型
+                    <select
+                      value={chatProfile}
+                      onChange={(event) => setChatProfile(event.target.value)}
+                      disabled={asking}
+                    >
+                      {chatModels.map((model) => (
+                        <option
+                          key={model.id}
+                          value={model.id}
+                          disabled={!model.available}
+                        >
+                          {model.label} · {model.model}
+                          {model.available ? "" : "（未配置）"}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
                   <textarea
                     value={question}
                     onChange={(event) => setQuestion(event.target.value)}

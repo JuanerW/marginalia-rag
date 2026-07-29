@@ -255,6 +255,15 @@ button:disabled { cursor: wait; opacity: .65; }
   margin: -9px 0 15px; color: var(--reader-muted);
   font-size: 10px; line-height: 1.5;
 }
+.rag-model-picker {
+  display: grid; gap: 6px; margin-bottom: 10px;
+  color: var(--reader-muted); font-size: 10px;
+}
+.rag-model-picker select {
+  width: 100%; padding: 9px;
+  border: 1px solid var(--reader-line); background: var(--reader-bg);
+  color: var(--reader-text);
+}
 .rag-panel textarea {
   width: 100%; resize: vertical; padding: 10px;
   border: 1px solid var(--reader-line); background: var(--reader-bg);

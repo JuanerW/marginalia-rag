@@ -19,6 +19,7 @@ from src.db.models import (
 from src.db.session import get_db
 from src.services.chat_models import (
     ChatModelConfigurationError,
+    chat_model_options,
     create_chat_model,
     current_chat_config,
 )
@@ -131,7 +132,20 @@ class AskRequest(BaseModel):
     reader_key: str = Field(default="local", min_length=1, max_length=128)
     max_chapter: int | None = Field(default=None, ge=1)
     max_offset: int | None = Field(default=None, ge=0)
+    chat_profile: str | None = Field(
+        default=None,
+        pattern="^(ollama|qwen|deepseek)$",
+    )
     chat_model: str | None = None
+
+
+class ChatModelOptionResult(BaseModel):
+    id: str
+    label: str
+    provider: str
+    model: str
+    available: bool
+    is_default: bool
 
 
 class AskResult(BaseModel):
@@ -139,6 +153,7 @@ class AskResult(BaseModel):
     profile_id: uuid.UUID
     question: str
     answer: str
+    chat_profile: str
     chat_model: str
     citations: list[SearchHit]
 
@@ -149,6 +164,14 @@ def _embedding_client(model: str | None) -> OllamaEmbeddingClient:
         model or settings.ollama_embedding_model,
         settings.ollama_embedding_timeout_seconds,
     )
+
+
+@router.get("/chat-models", response_model=list[ChatModelOptionResult])
+async def list_chat_models() -> list[ChatModelOptionResult]:
+    return [
+        ChatModelOptionResult(**option.__dict__)
+        for option in chat_model_options()
+    ]
 
 
 async def _resolve_profile(
@@ -472,7 +495,8 @@ async def ask_question(payload: AskRequest, db: DbSession) -> AskResult:
         )
         for number, hit in enumerate(hits, 1)
     )
-    chat_config = current_chat_config(payload.chat_model)
+    chat_profile = payload.chat_profile or settings.llm_provider
+    chat_config = current_chat_config(payload.chat_model, payload.chat_profile)
     try:
         model = create_chat_model(chat_config)
         answer = await answer_with_langchain(
@@ -488,6 +512,7 @@ async def ask_question(payload: AskRequest, db: DbSession) -> AskResult:
         profile_id=profile.id,
         question=payload.question,
         answer=answer,
+        chat_profile=chat_profile,
         chat_model=chat_config.model,
         citations=hits,
     )

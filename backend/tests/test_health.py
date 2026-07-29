@@ -21,3 +21,15 @@ def test_local_frontend_origins_are_allowed() -> None:
         )
         assert response.status_code == 200
         assert response.headers["access-control-allow-origin"] == origin
+
+
+def test_chat_model_catalog_does_not_expose_secrets() -> None:
+    response = TestClient(app).get("/api/v1/rag/chat-models")
+
+    assert response.status_code == 200
+    assert [model["id"] for model in response.json()] == [
+        "ollama",
+        "qwen",
+        "deepseek",
+    ]
+    assert "api_key" not in response.text.lower()

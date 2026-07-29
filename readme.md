@@ -179,6 +179,22 @@ LLM_API_KEY=
 OpenAI Chat Completions 接口的其他服务，使用 `LLM_PROVIDER=openai_compatible`
 并同时配置 `LLM_BASE_URL`。API Key 只保存在后端环境变量中，不会发送到前端。
 
+阅读器的“问书”面板支持在本地 Ollama、云端 Qwen 和 DeepSeek 之间切换。云端模型
+需要在 `.env` 中配置对应密钥，未配置的选项会保留显示但不可选择：
+
+```dotenv
+QWEN_API_KEY=
+QWEN_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1
+QWEN_CHAT_MODEL=qwen-plus
+
+DEEPSEEK_API_KEY=
+DEEPSEEK_BASE_URL=https://api.deepseek.com
+DEEPSEEK_CHAT_MODEL=deepseek-v4-flash
+```
+
+修改 `.env` 后需要重启后端。前端通过 `/api/v1/rag/chat-models` 获取可用模型，
+不会读取或接收 API Key。
+
 ## 本地启动
 
 先复制环境配置：
